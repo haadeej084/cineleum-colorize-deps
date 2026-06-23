@@ -29,7 +29,14 @@ RUN pip install --upgrade pip && \
 # Sanity: importeren mag niet falen in de build.
 RUN python -c "import torch, torchao, diffusers, cv2, transformers; print('deps OK', torch.__version__)"
 
-# KERN-FIX: vast zet de --onstart-cmd als container-command en exec't 'm DIRECT
-# (geen shell) → een multi-statement string faalt met 'no such file'. Een bash
-# entrypoint zorgt dat vast's command via `bash -c "<cmd>"` loopt → shell interpreteert.
-ENTRYPOINT ["/bin/bash", "-c"]
+# KERN-FIX: vast zet de --onstart-cmd als container-command en exec't 'm DIRECT als
+# argv[0] (geen shell, geen entrypoint-wrap — vast negeert de image-ENTRYPOINT). Een
+# multi-statement string faalt dus met 'no such file'. Oplossing: bak een uitvoerbaar
+# bootstrap-script IN de image en zet --onstart-cmd op dát pad (één geldig executable).
+RUN printf '%s\n' \
+    '#!/bin/bash' \
+    'export HF_HUB_ENABLE_HF_TRANSFER=1' \
+    'huggingface-cli download HaaDeej/cineleum-colorize-worker onstart_serverless.sh --local-dir /root --token "$HF_TOKEN" >/dev/null 2>&1' \
+    'exec bash /root/onstart_serverless.sh' \
+    > /usr/local/bin/cineleum-bootstrap \
+ && chmod +x /usr/local/bin/cineleum-bootstrap
