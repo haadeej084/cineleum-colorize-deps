@@ -2,9 +2,11 @@
 # vast-worker bij cold-start GEEN 17-min pip-install van torch hoeft te doen.
 # Het model blijft buiten de image (HF + hf_transfer) — alleen libs hier.
 #
-# torch cu128-wheels zijn self-contained (bundelen CUDA/cuDNN), dus een slanke
-# python-base volstaat; de host-driver (>=12.8 op de vast-4090's) doet de rest.
-FROM python:3.11-slim
+# BELANGRIJK: bouw op de pytorch-base die vast's onstart-mechanisme kent (v6 werkte
+# hierop). Een kale python-slim-base mist de shell-entrypoint die vast nodig heeft om
+# --onstart-cmd via bash te draaien → onstart werd als ruwe binary ge-exec't (faal).
+# torch 2.11+cu128 wordt over de base-torch 2.4 geïnstalleerd (groter image, maar werkt).
+FROM pytorch/pytorch:2.4.0-cuda12.1-cudnn9-runtime
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_NO_CACHE_DIR=1 \
