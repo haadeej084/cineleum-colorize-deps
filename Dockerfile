@@ -10,8 +10,9 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PIP_NO_CACHE_DIR=1 \
     HF_HUB_ENABLE_HF_TRANSFER=1
 
+# opencv-python-headless heeft GEEN libGL nodig; libglib2.0-0 voor de zekerheid.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        libgl1-mesa-glx libglib2.0-0 git wget curl ca-certificates && \
+        libglib2.0-0 git wget curl ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
 # Geverifieerde stack (zelfde versies als onstart_serverless.sh, getest L40S/5090).
