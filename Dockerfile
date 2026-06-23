@@ -28,3 +28,8 @@ RUN pip install --upgrade pip && \
 
 # Sanity: importeren mag niet falen in de build.
 RUN python -c "import torch, torchao, diffusers, cv2, transformers; print('deps OK', torch.__version__)"
+
+# KERN-FIX: vast zet de --onstart-cmd als container-command en exec't 'm DIRECT
+# (geen shell) → een multi-statement string faalt met 'no such file'. Een bash
+# entrypoint zorgt dat vast's command via `bash -c "<cmd>"` loopt → shell interpreteert.
+ENTRYPOINT ["/bin/bash", "-c"]
